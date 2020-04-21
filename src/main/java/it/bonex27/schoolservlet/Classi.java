@@ -7,6 +7,7 @@ package it.bonex27.schoolservlet;
 
 import com.google.gson.Gson;
 import it.bonex27.schoolservlet.pojo.Classe;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Connection;
@@ -26,7 +27,9 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class Classi extends HttpServlet {
 
-    PrintWriter out = null;
+    PrintWriter out = null; 
+    Connection con = null;
+    PreparedStatement ps = null;
     
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -67,23 +70,42 @@ public class Classi extends HttpServlet {
             return null;
         }
     }
+    private int getParameter(HttpServletRequest request){
+        
+        out.println(request.getRequestURI());
+        return 1;
+    }
+    private String getRequestBody(HttpServletRequest request) throws IOException {
+    StringBuilder sb = new StringBuilder();
+    BufferedReader reader = request.getReader();
+    try {
+        String line;
+        while ((line = reader.readLine()) != null) {
+            sb.append(line).append('\n');
+        }
+    } finally {
+        reader.close();
+    }
+    return sb.toString();
+}
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try{
             out = response.getWriter();
-            Connection con = getConnection();
-            PreparedStatement ps = con.prepareStatement("select * from class");
+            con = this.getConnection();
+            
+            if(request.getParameter("id") == null)
+                 ps = con.prepareStatement("select * from class");
+            else
+                ps = con.prepareStatement("select * from class where id = "+request.getParameter("id"));
+             
             ResultSet rs =ps.executeQuery();
             
             List<Classe> elencoClassi = new ArrayList();
             while (rs.next()) {
-                Classe cl = new Classe();
-                cl.setId(Integer.parseInt(rs.getString(1)));
-                cl.setYear(Integer.parseInt(rs.getString(2)));
-                cl.setSection(rs.getString(3));
+                Classe cl = new Classe(Integer.parseInt(rs.getString(1)),Integer.parseInt(rs.getString(2)),rs.getString(3));
                 elencoClassi.add(cl);
-                //out.println("<p>"+nomeClasse+"</p>");
             }
             
             
@@ -107,12 +129,63 @@ public class Classi extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processRequest(request, response);
+        try
+        {
+            //String json = "{ 'year':1200, 'section':'AAA'}";
+            Gson gson = new Gson();
+            out = response.getWriter();
+            con = this.getConnection();
+            
+            Classe clss =  gson.fromJson(getRequestBody(request), Classe.class);
+            
+            // Query mysql
+            String query = "insert into class (year, section)"
+              + " values (?, ?)";
+
+            // Creazione statement
+            ps.setInt(1, clss.getYear());
+            ps.setString (2, clss.getSection());
+
+             ps.execute();
+            
+             out.close();
+             con.close();
+             
+        } catch(Exception e)
+        {
+            System.out.println(e);
+            out.print(e);
+        }
+        finally
+        {
+            out.close();
+        }
     }
 
     @Override
-    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        super.doDelete(req, resp); //To change body of generated methods, choose Tools | Templates.
+    protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        try{
+            out = response.getWriter();
+            con = this.getConnection();
+            
+            if(request.getParameter("id") == null)
+                 response.setHeader("Status code", "401");
+            else
+                ps = con.prepareStatement("delete from class where id = ?");
+            
+            ps.setString(1, request.getParameter("id"));
+            ps.executeUpdate();
+        con.close();
+        }
+        catch(Exception e)
+        {
+            out.print(e);
+        }
+        finally
+        {
+            out.close();
+            
+        }
     }
 
     @Override

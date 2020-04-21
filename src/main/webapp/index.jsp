@@ -3,11 +3,22 @@
    "http://www.w3.org/TR/html4/loose.dtd">
 
 <html>
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>JSP Page</title>
-    </head>
-    <body>
-        <h1>Hello World!</h1>
+    <script>
+        function call()
+        {
+        var xmlHttp = new XMLHttpRequest();
+        xmlHttp.open( "DELETE", "http://localhost:8080/schoolServlet/classi?id=1", true ); // false for synchronous request
+        xmlHttp.onload = function() {
+            document.getElementById("test").innerHTML = xmlHttp.response;
+        }
+        xmlHttp.send("{ 'year':1200, 'section':'AAA'}");
+        }
+    </script>
+    <body onload="call()">
+        <div id='test'>
+
+        </div>       
     </body>
+    
+    
 </html>
