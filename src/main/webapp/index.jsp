@@ -7,11 +7,12 @@
         function call()
         {
         var xmlHttp = new XMLHttpRequest();
-        xmlHttp.open( "DELETE", "http://localhost:8080/schoolServlet/classi?id=1", true ); // false for synchronous request
+        xmlHttp.open( "POST", "http://localhost:8080/schoolServlet/StudentClasses", true ); // false for synchronous request
         xmlHttp.onload = function() {
             document.getElementById("test").innerHTML = xmlHttp.response;
         }
-        xmlHttp.send("{ 'year':1200, 'section':'AAA'}");
+        //"{ 'name':'Pietro', 'surname':'Bonechi' , 'sidiCode':12341241 , 'taxCode':'Abcd312'}"
+        xmlHttp.send("{ 'idStudent':64, 'idClass':1}");
         }
     </script>
     <body onload="call()">

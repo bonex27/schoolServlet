@@ -4,9 +4,25 @@
         <servlet-name>classi</servlet-name>
         <servlet-class>it.bonex27.schoolservlet.Classi</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>Students</servlet-name>
+        <servlet-class>it.bonex27.schoolservlet.Students</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>StudentClasses</servlet-name>
+        <servlet-class>it.bonex27.schoolservlet.StudentClasses</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>classi</servlet-name>
         <url-pattern>/classi</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>Students</servlet-name>
+        <url-pattern>/Students</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>StudentClasses</servlet-name>
+        <url-pattern>/StudentClasses</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>
