@@ -84,6 +84,15 @@ public class Classi extends HttpServlet {
     return sb.toString();
 }
     @Override
+     public void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException 
+     {
+        if (request.getMethod().equalsIgnoreCase("PATCH"))
+            doPatch(request, response);
+        else 
+            super.service(request, response);
+            
+    }
+    @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try{
@@ -185,10 +194,17 @@ public class Classi extends HttpServlet {
     }
 
     @Override
-    protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        super.doPut(req, resp); //To change body of generated methods, choose Tools | Templates.
+    protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException 
+    {
+        
     }
 
+    
+     
+    public  void doPatch(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
+    {
+ 
+    }
     
     
     /**

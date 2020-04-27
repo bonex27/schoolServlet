@@ -92,6 +92,16 @@ private Connection getConnection() {
     }
     return sb.toString();
 }
+    
+    @Override
+     public void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException 
+     {
+        if (request.getMethod().equalsIgnoreCase("PATCH"))
+            doPatch(request, response);
+        else 
+            super.service(request, response);
+            
+    }
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
      * Handles the HTTP <code>GET</code> method.
@@ -184,6 +194,40 @@ private Connection getConnection() {
         }
     }
 
+    @Override
+    protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+         try{
+            out = response.getWriter();
+            con = this.getConnection();
+            
+            if(request.getParameter("id") == null)
+                 response.setHeader("Status code", "401");
+            else
+                ps = con.prepareStatement("delete from student_class where id = ?");
+            
+            ps.setString(1, request.getParameter("id"));
+            ps.executeUpdate();
+        con.close();
+        }
+        catch(Exception e)
+        {
+            out.print(e);
+        }
+        finally
+        {
+            out.close();
+            
+        }
+    }
+
+    @Override
+    protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        super.doPut(req, resp); //To change body of generated methods, choose Tools | Templates.
+    }
+    
+    private void doPatch(HttpServletRequest request, HttpServletResponse response) {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
     /**
      * Returns a short description of the servlet.
      *
@@ -193,5 +237,7 @@ private Connection getConnection() {
     public String getServletInfo() {
         return "Short description";
     }// </editor-fold>
+
+    
 
 }

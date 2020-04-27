@@ -7,7 +7,7 @@
         function call()
         {
         var xmlHttp = new XMLHttpRequest();
-        xmlHttp.open( "POST", "http://localhost:8080/schoolServlet/StudentClasses", true ); // false for synchronous request
+        xmlHttp.open( "DELETE", "http://localhost:8080/schoolServlet/StudentClasses?id=122", true ); // false for synchronous request
         xmlHttp.onload = function() {
             document.getElementById("test").innerHTML = xmlHttp.response;
         }

@@ -93,6 +93,15 @@ public class Students extends HttpServlet {
     }
     return sb.toString();
 }
+    @Override
+     public void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException 
+     {
+        if (request.getMethod().equalsIgnoreCase("PATCH"))
+            doPatch(request, response);
+        else 
+            super.service(request, response);
+            
+    }
     /**
      * Handles the HTTP <code>GET</code> method.
      *
@@ -224,7 +233,9 @@ public class Students extends HttpServlet {
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         super.doPut(req, resp); //To change body of generated methods, choose Tools | Templates.
     }
-
+    private void doPatch(HttpServletRequest request, HttpServletResponse response) {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
     /**
      * Returns a short description of the servlet.
      *
@@ -234,5 +245,7 @@ public class Students extends HttpServlet {
     public String getServletInfo() {
         return "Short description";
     }// </editor-fold>
+
+    
 
 }
