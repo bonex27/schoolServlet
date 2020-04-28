@@ -7,6 +7,7 @@ package it.bonex27.schoolservlet;
 
 import com.google.gson.Gson;
 import it.bonex27.schoolservlet.pojo.Classe;
+import it.bonex27.schoolservlet.pojo.Student;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -14,6 +15,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import javax.servlet.ServletException;
@@ -196,7 +198,34 @@ public class Classi extends HttpServlet {
     @Override
     protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException 
     {
-        
+        Gson gson = new Gson();
+        out = response.getWriter();
+        con = this.getConnection();
+
+        if (request.getParameter("id") == null) {
+            System.out.println("Error");
+        } else {
+            Classe cls = gson.fromJson(getRequestBody(request), Classe.class);
+            cls.setId(Integer.parseInt(request.getParameter("id")));
+
+            // Query mysql
+            String query = "UPDATE class SET year = ?,  section = ? WHERE id = ? ";
+
+            try {
+                // Creazione statement
+                ps = con.prepareStatement(query);
+                ps.setInt(1, cls.getYear());
+                ps.setString(2, cls.getSection());
+                ps.setInt(5, cls.getId());
+
+                ps.executeUpdate();
+                out.close();
+                con.close();
+            } catch (SQLException e) {
+                System.out.println(e);
+                out.print(e);
+            }
+        }
     }
 
     

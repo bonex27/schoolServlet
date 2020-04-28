@@ -7,12 +7,12 @@
         function call()
         {
         var xmlHttp = new XMLHttpRequest();
-        xmlHttp.open( "DELETE", "http://localhost:8080/schoolServlet/StudentClasses?id=122", true ); // false for synchronous request
+        xmlHttp.open( "PUT", "http://localhost:8080/schoolServlet/Classi?id=2", true );
         xmlHttp.onload = function() {
             document.getElementById("test").innerHTML = xmlHttp.response;
         }
-        //"{ 'name':'Pietro', 'surname':'Bonechi' , 'sidiCode':12341241 , 'taxCode':'Abcd312'}"
-        xmlHttp.send("{ 'idStudent':64, 'idClass':1}");
+        //"{ 'idStudent':64, 'idClass':1}"
+        xmlHttp.send("{ 'section':'AAA'}");
         }
     </script>
     <body onload="call()">

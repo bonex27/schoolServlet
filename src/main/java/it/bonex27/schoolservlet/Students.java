@@ -29,9 +29,10 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class Students extends HttpServlet {
 
-    PrintWriter out = null; 
+    PrintWriter out = null;
     Connection con = null;
     PreparedStatement ps = null;
+
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -50,7 +51,7 @@ public class Students extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet Students</title>");            
+            out.println("<title>Servlet Students</title>");
             out.println("</head>");
             out.println("<body>");
             out.println("<h1>Servlet Students at " + request.getContextPath() + "</h1>");
@@ -63,45 +64,48 @@ public class Students extends HttpServlet {
 
     private Connection getConnection() {
         try {
-            String dbDriver = "com.mysql.jdbc.Driver"; 
-            String dbURL = "jdbc:mysql:// localhost:3306/"; 
+            String dbDriver = "com.mysql.jdbc.Driver";
+            String dbURL = "jdbc:mysql:// localhost:3306/";
             // Database name to access 
-            String dbName = "FI_ITIS_MEUCCI"; 
-            String dbUsername = "bonex"; 
-            String dbPassword = "pietro001"; 
+            String dbName = "FI_ITIS_MEUCCI";
+            String dbUsername = "bonex";
+            String dbPassword = "pietro001";
 
-            Class.forName(dbDriver); 
-            Connection con = DriverManager.getConnection(dbURL + dbName + "?serverTimezone=UTC", 
-                                                         dbUsername,  
-                                                         dbPassword); 
+            Class.forName(dbDriver);
+            Connection con = DriverManager.getConnection(dbURL + dbName + "?serverTimezone=UTC",
+                    dbUsername,
+                    dbPassword);
             return con;
         } catch (Exception e) {
-             e.printStackTrace();
+            e.printStackTrace();
             return null;
         }
     }
+
     private String getRequestBody(HttpServletRequest request) throws IOException {
-    StringBuilder sb = new StringBuilder();
-    BufferedReader reader = request.getReader();
-    try {
-        String line;
-        while ((line = reader.readLine()) != null) {
-            sb.append(line).append('\n');
+        StringBuilder sb = new StringBuilder();
+        BufferedReader reader = request.getReader();
+        try {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                sb.append(line).append('\n');
+            }
+        } finally {
+            reader.close();
         }
-    } finally {
-        reader.close();
+        return sb.toString();
     }
-    return sb.toString();
-}
+
     @Override
-     public void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException 
-     {
-        if (request.getMethod().equalsIgnoreCase("PATCH"))
+    public void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        if (request.getMethod().equalsIgnoreCase("PATCH")) {
             doPatch(request, response);
-        else 
+        } else {
             super.service(request, response);
-            
+        }
+
     }
+
     /**
      * Handles the HTTP <code>GET</code> method.
      *
@@ -113,38 +117,34 @@ public class Students extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        try{
+        try {
             out = response.getWriter();
             con = this.getConnection();
-            
-            if(request.getParameter("id") == null)
-                 ps = con.prepareStatement("select * from studet");
-            else
-                ps = con.prepareStatement("select * from student where id = "+request.getParameter("id"));
-             
-            ResultSet rs =ps.executeQuery();
-            
-            List<Student> elencoStudenti= new ArrayList();
+
+            if (request.getParameter("id") == null) {
+                ps = con.prepareStatement("select * from student");
+            } else {
+                ps = con.prepareStatement("select * from student where id = " + request.getParameter("id"));
+            }
+
+            ResultSet rs = ps.executeQuery();
+
+            List<Student> elencoStudenti = new ArrayList();
             while (rs.next()) {
-                Student st = new Student(Integer.parseInt(rs.getString(1)),rs.getString(2),rs.getString(3),Integer.parseInt(rs.getString(4)),rs.getString(5));
+                Student st = new Student(Integer.parseInt(rs.getString(1)), rs.getString(2), rs.getString(3), Integer.parseInt(rs.getString(4)), rs.getString(5));
                 elencoStudenti.add(st);
             }
-            
-            
+
             String ret = new Gson().toJson(elencoStudenti);
-            
+
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
             out.print(ret);
             out.flush();
-        }
-        catch(Exception e)
-        {
+        } catch (Exception e) {
             System.out.println(e);
             out.print(e);
-        }
-        finally
-        {
+        } finally {
             out.close();
         }
     }
@@ -160,82 +160,104 @@ public class Students extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        try
-        {
+        try {
             //String json = "{ 'year':1200, 'section':'AAA'}";
             Gson gson = new Gson();
             out = response.getWriter();
             con = this.getConnection();
-            
-            Student stu =  gson.fromJson(getRequestBody(request), Student.class);
-            
+
+            Student stu = gson.fromJson(getRequestBody(request), Student.class);
+
             // Query mysql
             String query = "insert into student (name, surname,sidiCode,taxCode)"
-              + " values (?,?,?,?)";
+                    + " values (?,?,?,?)";
 
-            try
-            {
-            // Creazione statement
-            ps = con.prepareStatement(query);
-            ps.setString(1, stu.getName());
-            ps.setString(2, stu.getSurname());
-            ps.setInt(3, stu.getSidiCode());
-            ps.setString (4, stu.getTaxCode());
+            try {
+                // Creazione statement
+                ps = con.prepareStatement(query);
+                ps.setString(1, stu.getName());
+                ps.setString(2, stu.getSurname());
+                ps.setInt(3, stu.getSidiCode());
+                ps.setString(4, stu.getTaxCode());
 
-             ps.executeUpdate();
-            }
-            catch(SQLException e)
-            {
+                ps.executeUpdate();
+            } catch (SQLException e) {
                 System.out.println(e);
-            out.print(e);
+                out.print(e);
             }
-             out.close();
-             con.close();
-             
-        } catch(Exception e)
-        {
+            out.close();
+            con.close();
+
+        } catch (Exception e) {
             System.out.println(e);
             out.print(e);
-        }
-        finally
-        {
+        } finally {
             out.close();
         }
     }
 
     @Override
     protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        try{
+        try {
             out = response.getWriter();
             con = this.getConnection();
-            
-            if(request.getParameter("id") == null)
-                 response.setHeader("Status code", "401");
-            else
+
+            if (request.getParameter("id") == null) {
+                response.setHeader("Status code", "401");
+            } else {
                 ps = con.prepareStatement("delete from student where id = ?");
-            
+            }
+
             ps.setString(1, request.getParameter("id"));
             ps.executeUpdate();
-        con.close();
-        }
-        catch(Exception e)
-        {
+            con.close();
+        } catch (Exception e) {
             out.print(e);
-        }
-        finally
-        {
+        } finally {
             out.close();
-            
+
         }
     }
 
     @Override
-    protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        super.doPut(req, resp); //To change body of generated methods, choose Tools | Templates.
-    }
-    private void doPatch(HttpServletRequest request, HttpServletResponse response) {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+        Gson gson = new Gson();
+        out = response.getWriter();
+        con = this.getConnection();
+
+        if (request.getParameter("id") == null) {
+            System.out.println("Error");
+        } else {
+            Student stu = gson.fromJson(getRequestBody(request), Student.class);
+            stu.setId(Integer.parseInt(request.getParameter("id")));
+
+            // Query mysql
+            String query = "UPDATE student SET name = ?, surname = ?, sidiCode = ?, taxCode = ? WHERE id = ? ";
+
+            try {
+                // Creazione statement
+                ps = con.prepareStatement(query);
+                ps.setString(1, stu.getName());
+                ps.setString(2, stu.getSurname());
+                ps.setInt(3, stu.getSidiCode());
+                ps.setString(4, stu.getTaxCode());
+                ps.setInt(5, stu.getId());
+
+                ps.executeUpdate();
+                out.close();
+                con.close();
+            } catch (SQLException e) {
+                System.out.println(e);
+                out.print(e);
+            }
         }
+    }
+
+    private void doPatch(HttpServletRequest request, HttpServletResponse response) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
     /**
      * Returns a short description of the servlet.
      *
@@ -245,7 +267,5 @@ public class Students extends HttpServlet {
     public String getServletInfo() {
         return "Short description";
     }// </editor-fold>
-
-    
 
 }
