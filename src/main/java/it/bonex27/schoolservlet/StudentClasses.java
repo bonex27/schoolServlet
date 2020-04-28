@@ -16,6 +16,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import javax.servlet.ServletException;
@@ -29,9 +30,10 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class StudentClasses extends HttpServlet {
 
-    PrintWriter out = null; 
+    PrintWriter out = null;
     Connection con = null;
     PreparedStatement ps = null;
+
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -50,7 +52,7 @@ public class StudentClasses extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet StudentClasses</title>");            
+            out.println("<title>Servlet StudentClasses</title>");
             out.println("</head>");
             out.println("<body>");
             out.println("<h1>Servlet StudentClasses at " + request.getContextPath() + "</h1>");
@@ -60,48 +62,51 @@ public class StudentClasses extends HttpServlet {
             out.close();
         }
     }
-private Connection getConnection() {
-        try {
-            String dbDriver = "com.mysql.jdbc.Driver"; 
-            String dbURL = "jdbc:mysql:// localhost:3306/"; 
-            // Database name to access 
-            String dbName = "FI_ITIS_MEUCCI"; 
-            String dbUsername = "bonex"; 
-            String dbPassword = "pietro001"; 
 
-            Class.forName(dbDriver); 
-            Connection con = DriverManager.getConnection(dbURL + dbName + "?serverTimezone=UTC", 
-                                                         dbUsername,  
-                                                         dbPassword); 
+    private Connection getConnection() {
+        try {
+            String dbDriver = "com.mysql.jdbc.Driver";
+            String dbURL = "jdbc:mysql:// localhost:3306/";
+            // Database name to access 
+            String dbName = "FI_ITIS_MEUCCI";
+            String dbUsername = "bonex";
+            String dbPassword = "pietro001";
+
+            Class.forName(dbDriver);
+            Connection con = DriverManager.getConnection(dbURL + dbName + "?serverTimezone=UTC",
+                    dbUsername,
+                    dbPassword);
             return con;
         } catch (Exception e) {
-             e.printStackTrace();
+            e.printStackTrace();
             return null;
         }
     }
+
     private String getRequestBody(HttpServletRequest request) throws IOException {
-    StringBuilder sb = new StringBuilder();
-    BufferedReader reader = request.getReader();
-    try {
-        String line;
-        while ((line = reader.readLine()) != null) {
-            sb.append(line).append('\n');
+        StringBuilder sb = new StringBuilder();
+        BufferedReader reader = request.getReader();
+        try {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                sb.append(line).append('\n');
+            }
+        } finally {
+            reader.close();
         }
-    } finally {
-        reader.close();
+        return sb.toString();
     }
-    return sb.toString();
-}
-    
+
     @Override
-     public void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException 
-     {
-        if (request.getMethod().equalsIgnoreCase("PATCH"))
+    public void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        if (request.getMethod().equalsIgnoreCase("PATCH")) {
             doPatch(request, response);
-        else 
+        } else {
             super.service(request, response);
-            
+        }
+
     }
+
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
      * Handles the HTTP <code>GET</code> method.
@@ -114,38 +119,34 @@ private Connection getConnection() {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        try{
+        try {
             out = response.getWriter();
             con = this.getConnection();
-            
-            if(request.getParameter("id") == null)
-                 ps = con.prepareStatement("select * from student_class");
-            else
-                ps = con.prepareStatement("select * from student_class where id = "+request.getParameter("id"));
-             
-            ResultSet rs =ps.executeQuery();
-            
-            List<StudentClass> elencoSC= new ArrayList();
+
+            if (request.getParameter("id") == null) {
+                ps = con.prepareStatement("select * from student_class");
+            } else {
+                ps = con.prepareStatement("select * from student_class where id = " + request.getParameter("id"));
+            }
+
+            ResultSet rs = ps.executeQuery();
+
+            List<StudentClass> elencoSC = new ArrayList();
             while (rs.next()) {
-                StudentClass st = new StudentClass(rs.getInt(1),rs.getInt(2),rs.getInt(3));
+                StudentClass st = new StudentClass(rs.getInt(1), rs.getInt(2), rs.getInt(3));
                 elencoSC.add(st);
             }
-            
-            
+
             String ret = new Gson().toJson(elencoSC);
-            
+
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
             out.print(ret);
             out.flush();
-        }
-        catch(Exception e)
-        {
+        } catch (Exception e) {
             System.out.println(e);
             out.print(e);
-        }
-        finally
-        {
+        } finally {
             out.close();
         }
     }
@@ -161,73 +162,147 @@ private Connection getConnection() {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        try
-        {
+        try {
             Gson gson = new Gson();
             out = response.getWriter();
             con = this.getConnection();
-            
-            StudentClass stuClss =  gson.fromJson(getRequestBody(request), StudentClass.class);
-            
+
+            StudentClass stuClss = gson.fromJson(getRequestBody(request), StudentClass.class);
+
             // Query mysql
             String query = "insert into student_class (idStudent, idClass)"
-              + " values (?, ?)";
+                    + " values (?, ?)";
 
             // Creazione statement
             ps = con.prepareStatement(query);
             ps.setInt(1, stuClss.getIdStudent());
             ps.setInt(2, stuClss.getIdClass());
 
-             ps.execute();
-            
-             out.close();
-             con.close();
-             
-        } catch(Exception e)
-        {
+            ps.execute();
+
+            out.close();
+            con.close();
+
+        } catch (Exception e) {
             System.out.println(e);
             out.print(e);
-        }
-        finally
-        {
+        } finally {
             out.close();
         }
     }
 
     @Override
     protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-         try{
+        try {
             out = response.getWriter();
             con = this.getConnection();
-            
-            if(request.getParameter("id") == null)
-                 response.setHeader("Status code", "401");
-            else
+
+            if (request.getParameter("id") == null) {
+                response.setHeader("Status code", "401");
+            } else {
                 ps = con.prepareStatement("delete from student_class where id = ?");
-            
+            }
+
             ps.setString(1, request.getParameter("id"));
             ps.executeUpdate();
-        con.close();
-        }
-        catch(Exception e)
-        {
+            con.close();
+        } catch (Exception e) {
             out.print(e);
-        }
-        finally
-        {
+        } finally {
             out.close();
-            
+
         }
     }
 
     @Override
-    protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        super.doPut(req, resp); //To change body of generated methods, choose Tools | Templates.
-    }
-    
-    private void doPatch(HttpServletRequest request, HttpServletResponse response) {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        Gson gson = new Gson();
+        out = response.getWriter();
+        con = this.getConnection();
+
+        if (request.getParameter("id") == null) {
+            System.out.println("Error");
+           
+        } else {
+            StudentClass stuClss = gson.fromJson(getRequestBody(request), StudentClass.class);
+            stuClss.setId(Integer.parseInt(request.getParameter("id")));
+
+            // Query mysql
+            String query = "UPDATE student_class SET id_student = ?,  id_class = ? WHERE id = ? ";
+
+            try {
+                // Creazione statement
+                ps = con.prepareStatement(query);
+                ps.setInt(1, stuClss.getIdStudent());
+                ps.setInt(2, stuClss.getIdClass());
+                ps.setInt(3, stuClss.getId());
+
+                ps.executeUpdate();
+                out.close();
+                con.close();
+            } catch (SQLException e) {
+                System.out.println(e);
+                out.print(e);
+            }
         }
+    }
+
+    private void doPatch(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        Gson gson = new Gson();
+        out = response.getWriter();
+        con = this.getConnection();
+
+        if (request.getParameter("id") == null) {
+            System.out.println("Error");
+           
+        } else {
+            StudentClass stuClss = gson.fromJson(getRequestBody(request), StudentClass.class);
+            stuClss.setId(Integer.parseInt(request.getParameter("id")));
+
+            String campi="";
+            int counter = 0;
+			if(stuClss.getIdClass() != null)
+                        {
+                            $campi .= "year = :year,";
+                        }
+
+			if(!is_null($this->_section) || $this->_section =! "")
+                        {
+                            $campi .= "section = :section,";
+                        }
+
+			$campi = rtrim($campi,",");
+
+    		$sql = "UPDATE class SET ".$campi." WHERE id = :id";
+                {
+                    $stmt = $this->db->prepare($sql);
+                }
+			
+		    
+		if(!is_null($this->_year) || $this->_year =! "")
+			ps.setInt(1, stuClss.getIdStudent());
+
+		if(!is_null($this->_section) || $this->_section =! "")
+			ps.setInt(1, stuClss.getIdStudent());
+            String query = "UPDATE student_class SET id_student = ?,  id_class = ? WHERE id = ? ";
+
+            try {
+                // Creazione statement
+                ps = con.prepareStatement(query);
+                ps.setInt(1, stuClss.getIdStudent());
+                ps.setInt(2, stuClss.getIdClass());
+                ps.setInt(3, stuClss.getId());
+
+                ps.executeUpdate();
+                out.close();
+                con.close();
+            } catch (SQLException e) {
+                System.out.println(e);
+                out.print(e);
+            }
+        }//To change body of generated methods, choose Tools | Templates.
+    }
+
     /**
      * Returns a short description of the servlet.
      *
@@ -237,7 +312,5 @@ private Connection getConnection() {
     public String getServletInfo() {
         return "Short description";
     }// </editor-fold>
-
-    
 
 }
