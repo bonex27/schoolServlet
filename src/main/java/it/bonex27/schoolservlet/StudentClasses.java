@@ -19,6 +19,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -100,7 +102,11 @@ public class StudentClasses extends HttpServlet {
     @Override
     public void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         if (request.getMethod().equalsIgnoreCase("PATCH")) {
-            doPatch(request, response);
+            try {
+                doPatch(request, response);
+            } catch (SQLException ex) {
+                System.out.println(ex);
+            }
         } else {
             super.service(request, response);
         }
@@ -222,7 +228,7 @@ public class StudentClasses extends HttpServlet {
 
         if (request.getParameter("id") == null) {
             System.out.println("Error");
-           
+
         } else {
             StudentClass stuClss = gson.fromJson(getRequestBody(request), StudentClass.class);
             stuClss.setId(Integer.parseInt(request.getParameter("id")));
@@ -247,52 +253,48 @@ public class StudentClasses extends HttpServlet {
         }
     }
 
-    private void doPatch(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    private void doPatch(HttpServletRequest request, HttpServletResponse response) throws IOException, SQLException {
         Gson gson = new Gson();
         out = response.getWriter();
         con = this.getConnection();
 
         if (request.getParameter("id") == null) {
             System.out.println("Error");
-           
+
         } else {
-            StudentClass stuClss = gson.fromJson(getRequestBody(request), StudentClass.class);
-            stuClss.setId(Integer.parseInt(request.getParameter("id")));
+            StudentClass stuCls = gson.fromJson(getRequestBody(request), StudentClass.class);
+            stuCls.setId(Integer.parseInt(request.getParameter("id")));
 
-            String campi="";
+            String campi = "";
             int counter = 0;
-			if(stuClss.getIdClass() != null)
-                        {
-                            $campi .= "year = :year,";
-                        }
+            if (stuCls.getIdStudent()!= 0) {
+                counter++;
+                campi += "idStudent = ?,";
+            }
 
-			if(!is_null($this->_section) || $this->_section =! "")
-                        {
-                            $campi .= "section = :section,";
-                        }
+            if (stuCls.getIdStudent() != 0) {
+                counter++;
+                campi += "idClass = ?,";  
+            }
+            counter++;
+            campi = campi.substring(0, campi.length() - 1);
+           
+            String query = "UPDATE student_class SET " + campi + " WHERE id = ?";
+            ps = con.prepareStatement(query);
+            
+            counter = 0;
+            if (stuCls.getIdStudent()!= 0) {
+                counter++;
+                ps.setInt(counter, stuCls.getIdStudent());
+            }
 
-			$campi = rtrim($campi,",");
-
-    		$sql = "UPDATE class SET ".$campi." WHERE id = :id";
-                {
-                    $stmt = $this->db->prepare($sql);
-                }
-			
-		    
-		if(!is_null($this->_year) || $this->_year =! "")
-			ps.setInt(1, stuClss.getIdStudent());
-
-		if(!is_null($this->_section) || $this->_section =! "")
-			ps.setInt(1, stuClss.getIdStudent());
-            String query = "UPDATE student_class SET id_student = ?,  id_class = ? WHERE id = ? ";
-
+            if (stuCls.getIdStudent() != 0) {
+                counter++;
+                ps.setInt(counter, stuCls.getId());
+            }
+            counter++;
+            ps.setInt(counter, stuCls.getId());
             try {
-                // Creazione statement
-                ps = con.prepareStatement(query);
-                ps.setInt(1, stuClss.getIdStudent());
-                ps.setInt(2, stuClss.getIdClass());
-                ps.setInt(3, stuClss.getId());
-
                 ps.executeUpdate();
                 out.close();
                 con.close();

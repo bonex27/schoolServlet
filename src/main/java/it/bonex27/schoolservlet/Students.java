@@ -18,6 +18,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -99,7 +101,11 @@ public class Students extends HttpServlet {
     @Override
     public void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         if (request.getMethod().equalsIgnoreCase("PATCH")) {
-            doPatch(request, response);
+            try {
+                doPatch(request, response);
+            } catch (SQLException ex) {
+                Logger.getLogger(Students.class.getName()).log(Level.SEVERE, null, ex);
+            }
         } else {
             super.service(request, response);
         }
@@ -254,8 +260,70 @@ public class Students extends HttpServlet {
         }
     }
 
-    private void doPatch(HttpServletRequest request, HttpServletResponse response) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    private void doPatch(HttpServletRequest request, HttpServletResponse response) throws IOException, SQLException {
+        Gson gson = new Gson();
+        out = response.getWriter();
+        con = this.getConnection();
+
+        if (request.getParameter("id") == null) {
+            System.out.println("Error");
+
+        } else {
+            Student stu = gson.fromJson(getRequestBody(request), Student.class);
+            stu.setId(Integer.parseInt(request.getParameter("id")));
+
+            String campi = "";
+            int counter = 0;
+            if (!stu.getName().equals("")) {
+                counter++;
+                campi += "name = ?,";  
+            }
+            if (!stu.getSurname().equals("")) {
+                counter++;
+                campi += "surname = ?,";  
+            }
+            if (stu.getSidiCode()!= 0) {
+                counter++;
+                campi += "sidiCode = ?,";  
+            }
+            if (!stu.getTaxCode().equals("")) {
+                counter++;
+                campi += "taxCode = ?,";  
+            }
+            counter++;
+            campi = campi.substring(0, campi.length() - 1);
+           
+            String query = "UPDATE student SET " + campi + " WHERE id = ?";
+            ps = con.prepareStatement(query);
+            
+            counter = 0;
+            if (!stu.getName().equals("")) {
+                counter++;
+                campi += "name = ?,";  
+            }
+            if (!stu.getSurname().equals("")) {
+                counter++;
+                campi += "surname = ?,";  
+            }
+            if (stu.getSidiCode()!= 0) {
+                counter++;
+                campi += "sidiCode = ?,";  
+            }
+            if (!stu.getTaxCode().equals("")) {
+                counter++;
+                campi += "taxCode = ?,";  
+            }
+            counter++;
+            ps.setInt(counter, stu.getId());
+            try {
+                ps.executeUpdate();
+                out.close();
+                con.close();
+            } catch (SQLException e) {
+                System.out.println(e);
+                out.print(e);
+            }
+        }//To change body of generated methods, choose Tools | Templates.
     }
 
     /**

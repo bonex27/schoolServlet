@@ -7,12 +7,12 @@
         function call()
         {
         var xmlHttp = new XMLHttpRequest();
-        xmlHttp.open( "PUT", "http://localhost:8080/schoolServlet/Classi?id=2", true );
+        xmlHttp.open( "PATCH", "http://localhost:8080/schoolServlet/classi?id=2", true );
         xmlHttp.onload = function() {
             document.getElementById("test").innerHTML = xmlHttp.response;
         }
         //"{ 'idStudent':64, 'idClass':1}"
-        xmlHttp.send("{ 'section':'AAA'}");
+        xmlHttp.send("{'section':'AAA'}");
         }
     </script>
     <body onload="call()">

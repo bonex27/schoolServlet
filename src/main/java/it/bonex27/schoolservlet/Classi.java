@@ -8,6 +8,7 @@ package it.bonex27.schoolservlet;
 import com.google.gson.Gson;
 import it.bonex27.schoolservlet.pojo.Classe;
 import it.bonex27.schoolservlet.pojo.Student;
+import it.bonex27.schoolservlet.pojo.StudentClass;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -18,6 +19,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -89,7 +92,11 @@ public class Classi extends HttpServlet {
      public void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException 
      {
         if (request.getMethod().equalsIgnoreCase("PATCH"))
-            doPatch(request, response);
+            try {
+                doPatch(request, response);
+        } catch (SQLException ex) {
+            Logger.getLogger(Classi.class.getName()).log(Level.SEVERE, null, ex);
+        }
         else 
             super.service(request, response);
             
@@ -230,9 +237,56 @@ public class Classi extends HttpServlet {
 
     
      
-    public  void doPatch(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
-    {
- 
+    private void doPatch(HttpServletRequest request, HttpServletResponse response) throws IOException, SQLException {
+        Gson gson = new Gson();
+        out = response.getWriter();
+        con = this.getConnection();
+
+        if (request.getParameter("id") == null) {
+            System.out.println("Error");
+
+        } else {
+            Classe cls = gson.fromJson(getRequestBody(request), Classe.class);
+            cls.setId(Integer.parseInt(request.getParameter("id")));
+
+            String campi = "";
+            int counter = 0;
+            if (cls.getYear()!= 0) {
+                counter++;
+                campi += "year = ?,";
+            }
+
+            if (!cls.getSection().equals("")) {
+                counter++;
+                campi += "section = ?,";  
+            }
+            counter++;
+            campi = campi.substring(0, campi.length() - 1);
+           
+            String query = "UPDATE class SET " + campi + " WHERE id = ?";
+            ps = con.prepareStatement(query);
+            
+            counter = 0;
+            if (cls.getYear()!= 0) {
+                counter++;
+                ps.setInt(counter, cls.getYear());
+            }
+
+            if (!cls.getSection().equals("")) {
+                counter++;
+                ps.setString(counter, cls.getSection());
+            }
+            counter++;
+            ps.setInt(counter, cls.getId());
+            try {
+                ps.executeUpdate();
+                out.close();
+                con.close();
+            } catch (SQLException e) {
+                System.out.println(e);
+                out.print(e);
+            }
+        }//To change body of generated methods, choose Tools | Templates.
     }
     
     
